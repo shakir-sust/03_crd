@@ -69,7 +69,7 @@ Number o treatments: 3 N rates x 3 K rates = 9
 Number of observations: 4 x 9 = 36  
 Yield: from 2795 to 7445 kg/ha  
 
-# d) EDA plots  
+# d) EDA (Exploratory Data Analysis) plots  
 ```{r n boxplot}
 ggplot(crd_dfw, aes(x = nrate_kgha,
                     y = yield_kgha,
@@ -81,6 +81,8 @@ ggplot(crd_dfw, aes(x = nrate_kgha,
   theme(legend.position = "none") # "theme(legend.position = "none")" function removes the legend from the graph. In this example, we do not need legends because the levels of "nrate_kgha" is already indicated in the x-axis
 ```
 
+
+
 ```{r k boxplot}
 ggplot(crd_dfw, aes(x = krate_kgha, 
                     y = yield_kgha,
@@ -91,6 +93,14 @@ ggplot(crd_dfw, aes(x = krate_kgha,
 ```
 
 ```{r nk boxplot}
+ggplot(crd_dfw, aes(x = nrate_kgha,
+                    y = yield_kgha,
+                    color = nrate_kgha
+                    )) +
+  geom_boxplot() +
+  geom_jitter() +
+  facet_grid(.~krate_kgha) + #takes all levels of a specified variable, then creates separate boxplots for each of the variable levels 
+  theme(legend.position = "none") #removes the legends from the graph
 
 ```
 
