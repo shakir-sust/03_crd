@@ -17,16 +17,23 @@ Here is where we load the packages we will use.
 ```{r setup}
 #install.packages("broom")
 
+install.packages("tidyverse")
+install.packages("car")
+install.packages("broom")
+install.packages("emmeans")
+install.packages("multcomp")
+
 # Loading packages
+
 library(tidyverse) # for data wrangling and plotting
 library(car) # for Anova function
-library(broom) # for model residuals extraction
+library(broom) # for model residuals extraction and residuals diagnostics
 library(emmeans) # for model mean extraction
 library(multcomp) # for pairwise comparison letter display
 ```
 
 ```{r data import}
-crd_df 
+crd_df <- read_csv("../data/wheat_nk_balkh.csv")
 
 crd_df
 ```
@@ -42,7 +49,13 @@ glimpse(crd_df)
 
 # c) Wrangling  
 ```{r crd_dfw}
-crd_dfw <- crd_df 
+crd_dfw <- crd_df %>% #The "w" in "crd_dfw" is to indicate wrangled dataframe/ object
+  mutate(rep = factor(rep), #"factor()" function converts "rep" from a "numeric" variable to "categorical" variable
+         nrate_kgha = factor(nrate_kgha), #"factor()" function converts "numeric" variable to "categorical" variable
+         krate_kgha = factor(krate_kgha) #"factor()" function converts "numeric" variable to "categorical" variable
+         ) %>%
+  mutate(trtname = paste0(nrate_kgha,"+",krate_kgha))
+
 
 crd_dfw
 ```
@@ -58,7 +71,14 @@ Yield: from 2795 to 7445 kg/ha
 
 # d) EDA plots  
 ```{r n boxplot}
-
+ggplot(crd_dfw, aes(x = nrate_kgha,
+                    y = yield_kgha,
+                    color = nrate_kgha #To color the boxplots by "nrate_kgha"
+                    )) +
+  geom_boxplot() + #"geom_boxplot()" function creates boxplots
+  geom_point() + # "geom_point()" function shows all data points in a straight line in the boxplots
+  geom_jitter() + # "geom_jitter" function jitters out all the data points in a horizontal spread rather than a     straight line. This is helpful because a lot of times (e.g., machine learning) all data points in a straight line does not help.
+  theme(legend.position = "none") # "theme(legend.position = "none")" function removes the legend from the graph. In this example, we do not need legends because the levels of "nrate_kgha" is already indicated in the x-axis
 ```
 
 ```{r k boxplot}
