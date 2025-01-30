@@ -54,7 +54,7 @@ crd_dfw <- crd_df %>% #The "w" in "crd_dfw" is to indicate wrangled dataframe/ o
          nrate_kgha = factor(nrate_kgha), #"factor()" function converts "numeric" variable to "categorical" variable
          krate_kgha = factor(krate_kgha) #"factor()" function converts "numeric" variable to "categorical" variable
          ) %>%
-  mutate(trtname = paste0(nrate_kgha,"+",krate_kgha))
+  mutate(trtname = paste0(nrate_kgha,"+",krate_kgha)) #to combine the "nrate_kgha" and "krate_kgha" treatments, then treat the combined variable "trtname" as a factor
 
 
 crd_dfw
