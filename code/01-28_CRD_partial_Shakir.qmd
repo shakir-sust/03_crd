@@ -106,9 +106,9 @@ ggplot(crd_dfw, aes(x = nrate_kgha,
 
 # e) Statistical model  
 ## Set-to-zero vs. sum-to-zero  
-In R, the default contrast type is set-to-zero.  
+In R, the default contrast type is *set-to-zero*.  
 
-In research, we normally are interested in sum-to-zero contrasts.  
+In research, we normally are interested in *sum-to-zero* contrasts.  
 
 Below we change the default to sum-to-zero ("contr.sum") before fitting the model.
 
@@ -118,8 +118,12 @@ Below we change the default to sum-to-zero ("contr.sum") before fitting the mode
 options(contrasts = c("contr.sum", "contr.poly"))
 
 # Model fitting
-crd_mod 
+crd_mod <- lm(yield_kgha ~ nrate_kgha + krate_kgha +
+                nrate_kgha:krate_kgha,
+              data = crd_dfw
+                )
 
+crd_dfw
 # Summary
 summary(crd_mod)
 ```
@@ -136,7 +140,7 @@ The more interacting effects a model has, the more efficient using the * becomes
 
 
 # f) ANOVA table  
-The `Anova()` function allows us to use **type 3 sum of squares**.  
+The `Anova()` function (case sensitive) allows us to use **type 3 sum of squares**.  
 
 The common functions `aov()` and `anova()` use type 1 SS, which is the wrong choice IF have unbalanced data.
 
@@ -145,8 +149,9 @@ If data is balanced, type 1 and 3 give same results.
 For sake of peace of mind, it is simpler to just always use type 3.  
 
 ```{r ANOVA}
-
+Anova(crd_mod, type = 3)
 ```
+In the ANOVA output, *(Intercept)* indicates the *overall mean*. We do NOT indicate this in the ANOVA table.
 
 Whenever your model has interaction terms, need to look at them first.  
 
@@ -164,7 +169,8 @@ Before we do that, let's check our model assumptions. Remember, a model is only 
 First, let's extract our model residuals, and also create studentized residuals.  
 
 ```{r crd_resid}
-crd_resid 
+crd_resid <- augment(crd_mod) %>% #"augment() function is included in the "broom" package
+  mutate(.studresid = rstudent(crd_mod)) #creating studentized residuals in a separate column
 
 crd_resid
 ```
@@ -174,9 +180,9 @@ Notice how we have a data frame with the original data rows and columns, plus so
 Now, let's recap the linear model assumptions:  
 
 - Residual independence (no pattern)  
-- Residual variance homogeneity (homoscedasticity)  
+- Residual variance homogeneity (homoscedasticity) (meaning that the variance around the residuals are basically similar, it looks like a shotgun, like a cloud of points and no specific pattern of increasing/ decreasing variance )
 - Residual normality (discuss this!)  
-- Outlier detection (< -3 or > 3)  
+- Outlier detection (< -3 SD or > 3 SD)  
 
 ## Residual independence  
 - For this, we use the **fitted vs. residual plot**.  
@@ -185,7 +191,15 @@ Now, let's recap the linear model assumptions:
 - Adding a `geom_smooth()` helps with that conclusion. We want to see the smooth line and error bands comprising 0 on the y axis.  
 
 ```{r }
-
+ggplot(crd_resid, aes(x = .fitted,
+                      y = .studresid)) +
+  geom_point(shape = 21, #shape of the points
+             fill = "purple", #color of the points
+             size = 3, #size of the points
+             alpha = .7 #"alpha" specifies the transparency of the points; ranges from 0 to 1 - 0 being completely transparent, 1 is a solid color; here we used .7 for 30 % transparency
+              ) +
+  geom_hline(yintercept = c(-3, 0, 3), color = "red") #"geom_hline" adds horizontal reference lines
+ #geom_vline => adds line vertically; geom_hline => adds line horizontally            
 ```
 Looks great! Next.  
 
