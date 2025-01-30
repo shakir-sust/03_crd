@@ -198,8 +198,8 @@ ggplot(crd_resid, aes(x = .fitted,
              size = 3, #size of the points
              alpha = .7 #"alpha" specifies the transparency of the points; ranges from 0 to 1 - 0 being completely transparent, 1 is a solid color; here we used .7 for 30 % transparency
               ) +
-  geom_hline(yintercept = c(-3, 0, 3), color = "red") #"geom_hline" adds horizontal reference lines
- #geom_vline => adds line vertically; geom_hline => adds line horizontally            
+  geom_hline(yintercept = c(-3, 0, 3), color = "red") + #"geom_hline" adds horizontal reference lines #geom_vline => adds line vertically; geom_hline => adds line horizontally
+  geom_smooth() #spline regression line to visualize residual pattern
 ```
 Looks great! Next.  
 
