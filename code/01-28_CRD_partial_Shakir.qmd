@@ -229,7 +229,9 @@ Looks great! Next.
 
 On the QQ plot, we want to see residuals on the black line, meaning they follow their theoretical normal distribution.  
 ```{r}
-
+ggplot(crd_resid, aes(sample = .studresid)) +
+  stat_qq() + #creates qq (quantile quantile) plot
+  stat_qq_line() #adds reference line in the qq plot
 ```
 
 It's common for some residuals in the tails being off, especially with low N (N=36). Nothing to worry here.  
