@@ -151,7 +151,7 @@ If data is balanced, type 1 and 3 give same results.
 For sake of peace of mind, it is simpler to just always use type 3.  
 
 ```{r ANOVA}
-Anova(crd_mod, type = 3)
+Anova(crd_mod, type = 3) #"type = 3" specifies Type III Sum of Squares
 ```
 In the ANOVA output, *(Intercept)* indicates the *overall mean*. We do NOT indicate this in the ANOVA table.
 
@@ -355,7 +355,8 @@ I would like to test the hypothesis of everything compared to everything else, w
 ```{r selected pwc}
 crd_cld_selected <- crd_cld_all %>% #At this point, "crd_cld_al" is not a data frame and cannot be used to plot using ggplot. The first thing we need to do is to convert the "crd_cld_all" into a data frame using the function "as.data.frame()"
   as.data.frame() %>%
-  mutate(letter = trimws(.group)) #To remove the wide spaces from the ".group" column, we will a create a new column which we will call "letter" and use the function "trimws()" [which stands for trim wide space]. This will remove the extra spaces from the ".group" column and store the letters in a new column called "letter"
+  mutate(letter = trimws(.group)) %>% #To remove the wide spaces from the ".group" column, we will a create a new column which we will call "letter" and use the function "trimws()" [which stands for trim wide space]. This will remove the extra spaces from the ".group" column and store the letters in a new column called "letter"
+  mutate(trtname = paste0(nrate_kgha, "+", krate_kgha)) #to combine the "nrate_kgha" and "krate_kgha" treatments, then treat the combined variable "trtname" as a factor
 
 crd_cld_selected
 ```
@@ -364,11 +365,40 @@ crd_cld_selected
 Let's plot our results, including both **raw data** (for allowing our audience to inspect data distribution) and **statistical model summary (i.e., letter separation)** for inference purposes.    
 
 ```{r crd final plot}
-
+#For all interactions
+ggplot() +
   # Raw data and boxplots  
-
+  geom_boxplot(data = crd_dfw,
+               aes(x = trtname, y = yield_kgha)) +
   # Adding letters
+  geom_label(data = crd_cld_selected,
+             aes(x = trtname,
+                 y = emmean,
+                 label = letter
+                 ))
 
+```
+```{r crd plot interaction pwc Potassium (k) inside Nitrogen (n) rates}
+
+#For interaction pwc Potassium (k) inside Nitrogen (n) rates
+crd_cld_kn_selected <- crd_cld_kn %>% #At this point, "crd_cld_kn" is not a data frame and cannot be used to plot using ggplot. The first thing we need to do is to convert the "crd_cld_all" into a data frame using the function "as.data.frame()"
+  as.data.frame() %>%
+  mutate(letter = trimws(.group)) %>% #To remove the wide spaces from the ".group" column, we will a create a new column which we will call "letter" and use the function "trimws()" [which stands for trim wide space]. This will remove the extra spaces from the ".group" column and store the letters in a new column called "letter"
+  mutate(trtname = paste0(nrate_kgha, "+", krate_kgha)) #to combine the "nrate_kgha" and "krate_kgha" treatments, then treat the combined variable "trtname" as a factor
+
+crd_cld_kn_selected
+
+ggplot() +
+  # Raw data and boxplots  
+  geom_boxplot(data = crd_dfw,
+               aes(x = krate_kgha, y = yield_kgha)) + #We want to see the Potassium rate in the x axis for all levels of Nitrogen rates
+  # Adding letters
+  geom_label(data = crd_cld_kn_selected,
+             aes(x = krate_kgha, #We want to see the Potassium rate in the x axis for all levels of Nitrogen rates
+                 y = emmean,
+                 label = letter
+                 )) +
+  facet_grid(.~ nrate_kgha) #Within Nitrogen rates, we want to compare Potassium rates. So, "nrate_kgha" will go in the "facet_grid()"  
 ```
 
 Let's make this plot publication ready.  
