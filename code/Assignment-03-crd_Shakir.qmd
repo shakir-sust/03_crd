@@ -1,6 +1,6 @@
 ---
 title: "Assignment 3 - CRD"
-author: "YOUR NAME HERE"  
+author: "Md Shakir Moazzem"  
 format:
   html:
     code-fold: false
@@ -37,13 +37,32 @@ Here is where we load the packages we will use.
 Make sure to load each package in the chunk below.  
 ```{r setup, warning=FALSE, message=FALSE}
 
-library(tidyverse)
+#Installing packages
+
+#install.packages("tidyverse")
+#install.packages("car")
+#install.packages("broom")
+#install.packages("emmeans")
+#install.packages("multcomp")
+#install.packages("multcompView")
+
+# Loading packages
+
+library(tidyverse) # for data wrangling and plotting
+library(car) # for Anova function
+library(broom) # for model residuals extraction and residuals diagnostics
+library(emmeans) # for model mean extraction
+library(multcomp) # for pairwise comparison letter display
+library(multcompView) # for pairwise comparison letter display
 
 ```
 
 Now, import the data set `wheat_nk_bamyan.csv` in the chunk below.  
 ```{r data import}
+ 
+crd_adf <- read_csv("../data/wheat_nk_bamyan.csv")
 
+crd_adf
 
 ```
 
@@ -52,28 +71,75 @@ The **objective of this study** was to assess the effect of different N and K ra
 For that, a study was conducted using a completely randomized design as the experimental design with four replicates. The treatment design was a 3 N x 3 K rate factorial, for a total of 9 treatments.  
 
 
-# b) EDA tables  
+# b) EDA (Exploratory Data Analysis) tables  
 Use this space to conduct exploratory data analysis of the imported data, in the form of tables.  
 
 ```{r}
-
+summary(crd_adf)
 ```
-
+```{r glimpse}
+glimpse(crd_adf)
+```
 
 # c) Wrangling  
 Here, make sure to wrangle your data set with all needed steps. Refer back to class code if you need a refresher on what was needed.  
 
+```{r crd_adfw}
+crd_adfw <- crd_adf %>% #The "w" in "crd_adfw" is to indicate wrangled dataframe/ object
+  mutate(rep = factor(rep), #"factor()" function converts "rep" from a "numeric" variable to "categorical" variable #The %>% pipe operator overwrites the previous "rep" (which was a "double") as a factor (categorical variable)
+         nrate_kgha = factor(nrate_kgha), #"factor()" function converts "numeric" variable to "categorical" variable
+         krate_kgha = factor(krate_kgha) #"factor()" function converts "numeric" variable to "categorical" variable
+         ) %>%
+  mutate(trtname_a = paste0(nrate_kgha,"+",krate_kgha)) #to combine the "nrate_kgha" and "krate_kgha" treatments, then treat the combined variable "trtname" as a factor
 
-# d) EDA plots  
-Now, explore the wrangled data using plots.  
-Make sure to explore plots showing the main effects and the interaction.  
 
-```{r}
-
+crd_adfw
 ```
 
 
+```{r crd_adfw}
+summary(crd_adfw)
+```
+Number of replicates: 4
+Number o treatments: 3 N rates x 3 K rates = 9  
+Number of observations: 4 (# of reps) x 9 (# of treatments) = 36  
+Yield: from 812 to 7232 kg/ha  
+
+# d) EDA (Exploratory Data Analysis) plots  
+Now, explore the wrangled data using plots.  
+Make sure to explore plots showing the main effects and the interaction.  
+
 ## Question 1) Below each plot of this section, write a sentence explaining your visual interpretation of the plot.  
+
+```{r nitrogen rate boxplot}
+ggplot(crd_adfw, aes(x = nrate_kgha,
+                    y = yield_kgha,
+                    color = nrate_kgha #To color the boxplots by "nrate_kgha"
+                    )) +
+  geom_boxplot() + #"geom_boxplot()" function creates boxplots
+  #geom_point() + # "geom_point()" function shows all data points in a straight line in the boxplots
+  stat_boxplot(geom = "errorbar", width = 0.2) + #To draw horizontal error bars (caps) at the ends of the boxplot whiskers
+  geom_jitter() + # "geom_jitter" function jitters out all the data points in a horizontal spread rather than a     straight line. This is helpful because a lot of times (e.g., machine learning) all data points in a straight line does not help.
+  theme(legend.position = "none") + # "theme(legend.position = "none")" function removes the legend from the graph. In this example, we do not need legends because the levels of "nrate_kgha" is already indicated in the x-axis
+  labs(x = "Nitrogen Rate (Kg/ Ha)", y = "Yield (Kg/ Ha)") #To label the x and y axes
+```
+
+To explore the main effect of Nitrogen, the spread of the boxplots for the three Nitrogen levels (i.e., 0 Kg/ Ha N2, 100 Kg/ Ha N2, 200 Kg/ Ha N2) are overlapping, which indicates that either the Nitrogen rate main effect may not be significant or very weak (if there is any).
+
+```{r potassium rate boxplot}
+ggplot(crd_adfw, aes(x = krate_kgha,
+                    y = yield_kgha,
+                    color = krate_kgha #To color the boxplots by "nrate_kgha"
+                    )) +
+  geom_boxplot() + #"geom_boxplot()" function creates boxplots
+  #geom_point() + # "geom_point()" function shows all data points in a straight line in the boxplots
+  stat_boxplot(geom = "errorbar", width = 0.2) + #To draw horizontal error bars (caps) at the ends of the boxplot whiskers
+  geom_jitter() + # "geom_jitter" function jitters out all the data points in a horizontal spread rather than a     straight line. This is helpful because a lot of times (e.g., machine learning) all data points in a straight line does not help.
+  theme(legend.position = "none") + # "theme(legend.position = "none")" function removes the legend from the graph. In this example, we do not need legends because the levels of "nrate_kgha" is already indicated in the x-axis
+  labs(x = "Potassium Rate (Kg/ Ha)", y = "Yield (Kg/ Ha)") #To label the x and y axes
+```
+
+To explore the main effect of Potassium, the spread of the boxplots for the 30 Kg/ Ha potassium and 50 Kg/ Ha potassium are overlapping with each other but that of 0 Kg/ Ha potassium appears to not be overlapping with the boxplots of the other two levels, which indicates that there may be a significant main effect for potassium rates.
 
 # e) Statistical model  
 In this section, run the appropriate model.  

@@ -15,6 +15,9 @@ The goals of this exercise are to:
 # a) Setup  
 Here is where we load the packages we will use.  
 ```{r setup}
+
+#Installing packages
+
 #install.packages("broom")
 
 install.packages("tidyverse")
