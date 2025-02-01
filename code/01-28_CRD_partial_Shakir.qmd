@@ -104,7 +104,7 @@ ggplot(crd_dfw, aes(x = nrate_kgha,
                     )) +
   geom_boxplot() +
   geom_jitter() +
-  facet_grid(.~krate_kgha) + #takes all levels of a specified variable, then creates separate boxplots for each of the variable levels 
+  facet_grid(.~krate_kgha) + #takes all levels of a specified variable ("potassium rate"/ "krate_kgha" in this case ), then creates separate boxplots for each of the variable levels 
   theme(legend.position = "none") #removes the legends from the graph
 
 ```
@@ -127,8 +127,6 @@ crd_mod <- lm(yield_kgha ~ nrate_kgha + krate_kgha +
                 nrate_kgha:krate_kgha,
               data = crd_dfw
                 )
-
-crd_dfw
 # Summary
 summary(crd_mod)
 ```
@@ -160,9 +158,9 @@ In the ANOVA output, *(Intercept)* indicates the *overall mean*. We do NOT indic
 
 Whenever your model has interaction terms, need to look at them first.  
 
-IF interaction term is significant, then you should explore that effect, and not the main effects separately in case they are also significant.    
+IF interaction term is significant, then you should explore that **interaction effect**, and not the main effects separately in case they are also significant.    
 
-In our case, we have a **significant effect of the interaction between nrate_kgha and krate_kgha**, and the main effects are not significant.
+In our case, we have a **significant effect of the interaction between nrate_kgha and krate_kgha**, and the **main effects are NOT significant**.
 
 Therefore, we should extract means and perform pairwise comparisons for the interaction term.
 
@@ -174,7 +172,7 @@ Before we do that, let's check our model assumptions. Remember, a model is only 
 First, let's extract our model residuals, and also create studentized residuals.  
 
 ```{r crd_resid}
-crd_resid <- augment(crd_mod) %>% #"augment() function is included in the "broom" package
+crd_resid <- broom::augment(crd_mod) %>% #"augment() function is included in the "broom" package
   mutate(.studresid = rstudent(crd_mod)) #creating studentized residuals in a separate column
 
 crd_resid

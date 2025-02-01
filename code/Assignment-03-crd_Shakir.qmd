@@ -141,21 +141,94 @@ ggplot(crd_adfw, aes(x = krate_kgha,
 
 To explore the main effect of Potassium, the spread of the boxplots for the 30 Kg/ Ha potassium and 50 Kg/ Ha potassium are overlapping with each other but that of 0 Kg/ Ha potassium appears to not be overlapping with the boxplots of the other two levels, which indicates that there may be a significant main effect for potassium rates.
 
+```{r nitrogen*potassium rate boxplot}
+ggplot(crd_adfw, aes(x = nrate_kgha,
+                    y = yield_kgha,
+                    color = nrate_kgha #To color the boxplots by "nrate_kgha"
+                    )) +
+  geom_boxplot() + #"geom_boxplot()" function creates boxplots
+  #geom_point() + # "geom_point()" function shows all data points in a straight line in the boxplots
+  stat_boxplot(geom = "errorbar", width = 0.2) + #To draw horizontal error bars (caps) at the ends of the boxplot whiskers
+  geom_jitter() + # "geom_jitter" function jitters out all the data points in a horizontal spread rather than a     straight line. This is helpful because a lot of times (e.g., machine learning) all data points in a straight line does not help.
+  theme(legend.position = "none") + # "theme(legend.position = "none")" function removes the legend from the graph. In this example, we do not need legends because the levels of "nrate_kgha" is already indicated in the x-axis
+  facet_grid(.~krate_kgha,
+             labeller = labeller(krate_kgha = function(x) {
+               paste("Potassium Rate (Kg/Ha):", x)
+             })) + #"facet_grid()" function takes all levels of a specified variable ("potassium rate"/ "krate_kgha" in this case ), then creates separate boxplots for each of the variable levels # the custom function provided to "labeller()" takes the values of the levels for krate_kgha (i.e., 0, 30, 60 kg/ha potassium rate)  and pastes the desired title on top of each facet. As a result, each facet strip will display: "Potassium Rate (Kg/Ha): 0", "Potassium Rate (Kg/Ha): 30", and "Potassium Rate (Kg/Ha): 60"
+  labs(x = "Nitrogen Rate (Kg/ Ha)", y = "Yield (Kg/ Ha)") #To label the x and y axes
+
+```
+
+To explore the interaction effect of Nitrogen rates and Potassium rates, all the boxplots for each levels of Nitrogen rate i.e., 0 Kg/ Ha Potassium rate, 30 Kg/ Ha Potassium rate, and 60 Kg/ Ha Potassium rate have a similar increasing pattern, which indicate that the interaction effect for nitrogen*potassium rate may not be significant.
+
 # e) Statistical model  
 In this section, run the appropriate model.  
 Remember to set the contrast type to sum-to-zero (the default in R is set-to-zero, which is not what we want).  
 
-Also, remember to specify all model terms needed for the treatment design.  
+Also, remember to specify all model terms needed for the treatment design. 
+
+## Shortcut for model specification:
+
+Model specification (long way): y ~ x1 + x2 + x1:x2
+Model specification (short way): y ~ x1*x2
+Both of these same expressions are identidal and will do the same operation: y ~ x1 + x2 + x1:x2 == y ~ x1*x2
+
+For this example,
+Model specification (long way): yield_kgha ~ nrate_kgha + krate_kgha + nrate_kgha:krate_kgha
+Model specification (short way): yield_kgha ~ nrate_kgha*krate_kgha
+Both of these same expressions are identidal and will do the same operation:
+yield_kgha ~ nrate_kgha + krate_kgha + nrate_kgha:krate_kgha == yield_kgha ~ nrate_kgha*krate_kgha
+
+"Instead of specifying 
+          `nrate_kgha + krate_kgha + nrate_kgha:krate_kgha`,  
+we could have just used  
+                   `nrate_kgha*krate_kgha`.  
+
+R interprets the `*` as "give me all main effects and interactions".
+
+The more interaction effects a model has, the more efficient using the * becomes." - Dr. Bastos  
+
+```{r model}
+# Changing to sum-to-zero contrast
+options(contrasts = c("contr.sum", "contr.poly"))
+
+# Model fitting
+crd_adfw #Original (main) wrangled data frame to check the variables
+crd_mod_a <- lm(yield_kgha ~ nrate_kgha*krate_kgha,
+              data = crd_adfw
+                )
+# Summary
+summary(crd_mod_a)
+```
 
 # f) ANOVA table  
 Use this section to check the ANOVA table, ensuring you use type 3 sum-of-squares.
 
+"The `Anova()` function (case sensitive) allows us to use **type 3 sum of squares**.  
+
+The common functions `aov()` and `anova()` use type 1 SS, which is the wrong choice IF have unbalanced data.
+
+If data is balanced, type 1 and 3 give same results.  
+
+For sake of peace of mind, it is simpler to just always use type 3." - Dr. Bastos
+
+```{r ANOVA}
+Anova(crd_mod_a, type = 3) #"type = 3" specifies Type III Sum of Squares
+```
 
 ## Question 2) Based on the ANOVA table above, for which effect(s) in the ANOVA should you extract means and perform pair-wise comparisons? Explain why.  
 
+Based on the ANOVA table above, the "nrate_kgha*krate_kgha" interaction effect is not significant at 5% level of significance because  the p-value (= 0.53857) for this interaction effect is greater than 0.05. However, the main effects of both "nrate_kgha" and "krate_kgha" are significant at 1% level of significance becase the p-values for both "nrate_kgha "(p-value = 0.00394) and "krate_kgha" (p-value = 5.892e-06) are less than 0.01. Therefore, I should extract means and perform pair-wise comparisons for the main effects of Nitrogen rate (nrate_kgha ) and Potassium rate (krate_kgha), because both of the main effects for Nitrogen rate i.e., nrate_kgha (p-value = 0.00394) and Potassium rate i.e., krate_kgha (p-value = 5.892e-06) are found significant in the ANOVA table at alpha = 0.01 (1%) level of significance.
 
 # g) Linear model assumptions  
 Use this section to first compute your residuals, including studentdized residuals.  
+
+```{r crd_resid}
+crd_resid_a <- broom::augment(crd_mod_a) %>% #"augment() function is included in the "broom" package
+  mutate(.studresid = rstudent(crd_mod_a)) #creating studentized residuals in a separate column
+
+crd_resid_a
+```
 
 ## Question 3) What are the linear model assumptions that we need to check for? Create subsections (using ##) below for each of these assumptions, and write code to produce plots to check for these assumptions. For each assumption, write down your interpretation of the produced plots, and your thoughts if the assumptions hold or not.  
 
