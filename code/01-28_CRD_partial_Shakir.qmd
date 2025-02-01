@@ -14,7 +14,7 @@ The goals of this exercise are to:
 
 # a) Setup  
 Here is where we load the packages we will use.  
-```{r setup}
+```{r setup, warning=FALSE, message=FALSE}
 
 #Installing packages
 
@@ -37,7 +37,7 @@ library(multcomp) # for pairwise comparison letter display
 library(multcompView) # for pairwise comparison letter display
 ```
 
-```{r data import}
+```{r data import, warning=FALSE, message=FALSE}
 crd_df <- read_csv("../data/wheat_nk_balkh.csv")
 
 crd_df
