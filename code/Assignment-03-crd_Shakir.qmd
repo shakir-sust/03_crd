@@ -113,7 +113,7 @@ Make sure to explore plots showing the main effects and the interaction.
 ```{r nitrogen rate boxplot, warning=FALSE, message=FALSE}
 ggplot(crd_adfw, aes(x = nrate_kgha,
                     y = yield_kgha,
-                    color = nrate_kgha #To color the boxplots by "nrate_kgha"
+                    fill = nrate_kgha #To color the boxplots by "nrate_kgha"
                     )) +
   geom_boxplot() + #"geom_boxplot()" function creates boxplots
   #geom_point() + # "geom_point()" function shows all data points in a straight line in the boxplots
@@ -128,7 +128,7 @@ To explore the main effect of Nitrogen, the spread of the boxplots for the three
 ```{r potassium rate boxplot, warning=FALSE, message=FALSE}
 ggplot(crd_adfw, aes(x = krate_kgha,
                     y = yield_kgha,
-                    color = krate_kgha #To color the boxplots by "nrate_kgha"
+                    fill = krate_kgha #To color the boxplots by "nrate_kgha"
                     )) +
   geom_boxplot() + #"geom_boxplot()" function creates boxplots
   #geom_point() + # "geom_point()" function shows all data points in a straight line in the boxplots
@@ -143,7 +143,7 @@ To explore the main effect of Potassium, the spread of the boxplots for the 30 K
 ```{r nitrogen*potassium rate boxplot, warning=FALSE, message=FALSE}
 ggplot(crd_adfw, aes(x = nrate_kgha,
                     y = yield_kgha,
-                    color = nrate_kgha #To color the boxplots by "nrate_kgha"
+                    fill = nrate_kgha #To color the boxplots by "nrate_kgha"
                     )) +
   geom_boxplot() + #"geom_boxplot()" function creates boxplots
   #geom_point() + # "geom_point()" function shows all data points in a straight line in the boxplots
@@ -187,13 +187,22 @@ R interprets the `*` as "give me all main effects and interactions".
 
 The more interaction effects a model has, the more efficient using the * becomes." - Dr. Bastos  
 
+## Changing default contrast type from "set-to-zero" to "sum-to-zero"
+
+In R, the default contrast type is *set-to-zero*.  
+
+In research, we normally are interested in *sum-to-zero* contrasts.  
+
+Below we change the default to sum-to-zero ("contr.sum") before fitting the model.
+
+
 ```{r model, warning=FALSE, message=FALSE}
 # Changing to sum-to-zero contrast
-options(contrasts = c("contr.sum", "contr.poly"))
+options(contrasts = c("contr.sum", "contr.poly")) #contrasts = c("contr.sum", "contr.poly") means that if the variable is categorical, change the contrast to sum to zero; if the variable is continuous, then change the contrast to polynomial 
 
 # Model fitting
 crd_adfw #Original (main) wrangled data frame to check the variables
-crd_mod_a <- lm(yield_kgha ~ nrate_kgha*krate_kgha,
+crd_mod_a <- lm(yield_kgha ~ nrate_kgha*krate_kgha, #the block effect i.e., rep is what separates RCBD from CRD. In RCBD, the "rep" is included in the model as a factor. However, "rep" is not included in the model for CRD.
               data = crd_adfw
                 )
 # Summary
@@ -214,6 +223,18 @@ For sake of peace of mind, it is simpler to just always use type 3." - Dr. Basto
 ```{r ANOVA, warning=FALSE, message=FALSE}
 Anova(crd_mod_a, type = 3) #"type = 3" specifies Type III Sum of Squares
 ```
+
+In the ANOVA output, *(Intercept)* indicates the *overall mean*. We do NOT indicate this in the ANOVA table.
+
+Whenever your model has interaction terms, need to look at them first.  
+
+IF interaction term is significant, then you should explore that **interaction effect**, and not the main effects separately in case they are also significant.    
+
+In this case, the main effects for nrate_kgha and krate_kgha are significant, whereas the interaction for nrate_kgha*krate_kgha is not significant.
+
+Hence, we should extract means and perform pairwise comparisons for the main effects nrate_kgha and krate_kgha separately.
+
+Before we do that, let's check our model assumptions. Remember, a model is only valid for inference (i.e., means and pwc) IF if fulfills the linear model assumptions.  
 
 ## Question 2) Based on the ANOVA table above, for which effect(s) in the ANOVA should you extract means and perform pair-wise comparisons? Explain why.  
 
@@ -289,8 +310,15 @@ In the **fitted vs. residual plot** shown above, we see no clear pattern in resi
 
 ```{r qq plot/ quantile quantile plot: residual normality, warning=FALSE, message=FALSE}
 ggplot(crd_resid_a, aes(sample = .studresid)) +
-  stat_qq() + #creates qq (quantile quantile) plot
+  stat_qq(shape = 21,
+          fill = "purple", 
+          size = 3,
+          alpha = .7
+          ) + #creates qq (quantile quantile) plot
   stat_qq_line() #adds reference line in the qq plot
+  labs(x = "Theoretical quantile",
+       y = "Sample quantile")+
+  theme_bw()
 ```
 
 Based on the QQ plot, the residuals fall closely around the qq line with no strong curvature pattern or heavy tail-deviations. Hence, the normality assumption appears to be reasonably held. 
@@ -302,7 +330,8 @@ ggplot(crd_resid_a, aes(x = .studresid)) + #In density plot, we specify only x, 
   geom_density(color = "black",
                fill = "purple",
                alpha = .7) + #adds density plot
-  scale_x_continuous(breaks = c(-3, 0, 3), limits = c(-3, 3)) #shows only 3, 0, -3 points in x axis
+  scale_x_continuous(breaks = c(-3, 0, 3), limits = c(-3, 3)) + #shows only 3, 0, -3 points in x axis
+  theme_bw()
 ```
 
 The density plot appears to have a normal distribution. Hence, the normality assumption appears to be held. 
