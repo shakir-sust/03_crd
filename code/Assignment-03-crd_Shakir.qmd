@@ -299,7 +299,9 @@ Note: "It's common for some residuals in the tails being off, especially with lo
 
 ```{r density plot: residual normality, warning=FALSE, message=FALSE}
 ggplot(crd_resid_a, aes(x = .studresid)) + #In density plot, we specify only x, we do not indicate y in the "ggplot()" function
-  geom_density() + #adds density plot
+  geom_density(color = "black",
+               fill = "purple",
+               alpha = .7) + #adds density plot
   scale_x_continuous(breaks = c(-3, 0, 3), limits = c(-3, 3)) #shows only 3, 0, -3 points in x axis
 ```
 
@@ -429,7 +431,7 @@ Answer:
 ## Boxplots with pairwise comparisons for all levels of nitrogen rates inside each level of potassium rates  
 
 
-```{r crd plot interaction pwc nitrogen (n) inside potassium (k) rates, warning=FALSE, message=FALSE}
+```{r data wrangling for crd plot interaction pwc nitrogen (n) inside potassium (k) rates, warning=FALSE, message=FALSE}
 
 #For interaction pwc Potassium (k) inside Nitrogen (n) rates
 crd_cld_kn_selected_a <- crd_cld_kn_a %>% #At this point, "crd_cld_kn_a" is not a data frame and cannot be used to plot using ggplot. The first thing we need to do is to convert the "crd_cld_kn_selected_a" into a data frame using the function "as.data.frame()"
@@ -438,12 +440,17 @@ crd_cld_kn_selected_a <- crd_cld_kn_a %>% #At this point, "crd_cld_kn_a" is not 
   mutate(trtname = paste0(nrate_kgha, "+", krate_kgha)) #to combine the "nrate_kgha" and "krate_kgha" treatments, then treat the combined variable "trtname" as a factor
 
 crd_cld_kn_selected_a
+```
 
+
+```{r crd plot interaction pwc nitrogen (n) inside potassium (k) rates}
 ggplot() +
   # Raw data and boxplots  
   geom_boxplot(data = crd_adfw,
-               aes(x = krate_kgha, y = yield_kgha,
-                   color = krate_kgha )) + #We want to see the nitrogen rate in the x axis for all levels of potassium rates
+               aes(x = krate_kgha, 
+                   y = yield_kgha,
+                   fill = krate_kgha 
+                   )) + #We want to see the nitrogen rate in the x axis for all levels of potassium rates
   geom_jitter() +
   theme(legend.position = "none") +
   # Adding letters
@@ -459,6 +466,8 @@ ggplot() +
    labs(x = "Potassium Rate (Kg/ Ha)", y = "Yield (Kg/ Ha)") +
    stat_boxplot(geom = "errorbar", width = 0.2)
 ```
+
+
 **Interpretation:**
 
 From the plot shown above, we come to the following conclusions:  
@@ -473,7 +482,7 @@ When the nitrogen rate was 200 kg/ha nitrogen, the yield for 0 kg/ha potassium r
 ## Boxplots with pairwise comparisons for all levels of potassium rates inside each level of nitrogen rates  
 
 
-```{r crd plot interaction pwc Potassium (k) inside Nitrogen (n) rates, warning=FALSE, message=FALSE}
+```{r data wrangling for crd plot interaction pwc Potassium (k) inside Nitrogen (n) rates, warning=FALSE, message=FALSE}
 
 #For interaction pwc Potassium (k) inside Nitrogen (n) rates
 crd_cld_nk_selected_a <- crd_cld_nk_a %>% #At this point, "crd_cld_nk_a" is not a data frame and cannot be used to plot using ggplot. The first thing we need to do is to convert the "crd_cld_nk_selected_a" into a data frame using the function "as.data.frame()"
@@ -482,7 +491,9 @@ crd_cld_nk_selected_a <- crd_cld_nk_a %>% #At this point, "crd_cld_nk_a" is not 
   mutate(trtname = paste0(nrate_kgha, "+", krate_kgha)) #to combine the "nrate_kgha" and "krate_kgha" treatments, then treat the combined variable "trtname" as a factor
 
 crd_cld_nk_selected_a
+```
 
+```{r crd plot interaction pwc Potassium (k) inside Nitrogen (n) rates, warning=FALSE, message=FALSE}
 ggplot() +
   # Raw data and boxplots  
   geom_boxplot(data = crd_adfw,

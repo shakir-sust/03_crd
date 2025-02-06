@@ -305,9 +305,9 @@ This is specially important IF the data is unbalanced (i.e., missing data), in w
 
 Also, when extracting means from an interaction, there are few different ways of doing it, and which one we do depends on the study objectives. Let's explore them below.
 
-##Estimated marginal means for all combinations of nitrogen*potassium interactions
+## Estimated marginal means for all combinations of nitrogen*potassium interactions
 
-```{r interaction means all: to extract all means for nitrogen*potassium interactions}
+```{r interaction means all: to extract all means for nitrogen*potassium interactions, warning=FALSE, message=FALSE}
 
 #If our goal is to find the overall best, we will run this interaction means all 
 
@@ -321,7 +321,7 @@ crd_means_all
 
 Note: In the output table, "em" in "emmeans" column stand for "expected mariginal means. emmean = Expected Marginal Mean
 
-##Estimated marginal means of all levels of nitrogen rates inside each level of potassium rates
+## Estimated marginal means of all levels of nitrogen rates inside each level of potassium rates
 
 ```{r interaction means n inside k: to extract the means of nitrogen rates inside each levels of potassim rates}
 #If our goal is to find the best in Nitrogen rates inside each of the Potassium rates, we will extract the means of nitrogen inside potassim rates:
@@ -334,7 +334,7 @@ crd_means_nk
 ```
 
 
-##Estimated marginal means of all levels of potassium rates inside each level of nitrogen rates
+## Estimated marginal means of all levels of potassium rates inside each level of nitrogen rates
 
 
 ```{r interaction means k inside n: to extract the means of potassium inside nitrogen rates}
@@ -354,17 +354,21 @@ Now that we extracted means, let's perform pairwise comparisons among them.
 
 First, let's extract means for all 3 types of interaction means extracted above. After that, we'll make a decision on which one to use.
 
+## Pairwise comparisons of all combinatinos of nitrogen*potassium interaction levels  
+
 ```{r interaction pwc all}
 crd_cld_all <- cld(crd_means_all,
                    reversed = T, #Reverses the order of appearance from highest to lowest in the columns (default is lowest to highest)
                    Letters = letters, #Lower case "letters" is a native object of R that displays all the letters of the Alphabet in lowercase; The argument here is the upper case "Letters" which is a function, I want "Letters" function to follow the order of the lower case "letters" object
-                   adjust = "none" #To specify the type of multiple comparison adjustment e.g., type in "tukey" to use the Tukey's adjustment; "none" to use no adjustment
+                   adjust = "none", #To specify the type of multiple comparison adjustment e.g., type in "tukey" to use the Tukey's adjustment; "none" to use no adjustment
+                   #alpha = 0.1 #To change the level of significance
                    )
 
 #The "cld" in the "cld()" function stands for "Compact Letter Display"
 
 crd_cld_all
 ```
+## Pairwise comparisons of all levels of nitrogen rates inside each level of potassium rates  
 
 ```{r interaction pwc n inside k}
 crd_cld_nk <- cld(crd_means_nk, 
@@ -375,6 +379,9 @@ crd_cld_nk <- cld(crd_means_nk,
 #Multiple comparisons for Nitrogen groups only within the groups of Potassium
 crd_cld_nk
 ```
+
+## Pairwise comparisons of all levels of potassium rates inside each level of nitrogen rates  
+
 
 ```{r interaction pwc k inside n}
 crd_cld_kn <- cld(crd_means_kn, 
@@ -388,9 +395,14 @@ crd_cld_kn
 
 Notice how different types of pwc (which are actually coming from differences in how we extracted the means) are testing different hypothesis.  
 
-I would like to test the hypothesis of everything compared to everything else, which corresponds to our first method using `:`. Let's do that below and some light wrangling.    
 
-```{r selected pwc}
+## g) Final plot  
+
+I would like to test the hypothesis of everything compared to everything else, which corresponds to our first method using `:`. Let's do that below and some light wrangling.  
+
+## Boxplots with pairwise comparisons for all combinations of nitrogen*potassium level interactions
+
+```{r data wrangling for crd plot with all combinations of nitrogen*potassium level interactions}
 crd_cld_selected <- crd_cld_all %>% #At this point, "crd_cld_al" is not a data frame and cannot be used to plot using ggplot. The first thing we need to do is to convert the "crd_cld_all" into a data frame using the function "as.data.frame()"
   as.data.frame() %>%
   mutate(letter = trimws(.group)) %>% #To remove the wide spaces from the ".group" column, we will a create a new column which we will call "letter" and use the function "trimws()" [which stands for trim wide space]. This will remove the extra spaces from the ".group" column and store the letters in a new column called "letter"
@@ -399,24 +411,34 @@ crd_cld_selected <- crd_cld_all %>% #At this point, "crd_cld_al" is not a data f
 crd_cld_selected
 ```
 
-## g) Final plot  
 Let's plot our results, including both **raw data** (for allowing our audience to inspect data distribution) and **statistical model summary (i.e., letter separation)** for inference purposes.    
+
+Let's make this plot publication ready.  
+
+Also, let's explore some different ways of showing this, and how that may impact interpretation, using facets.  
 
 ```{r crd final plot}
 #For all interactions
 ggplot() +
   # Raw data and boxplots  
   geom_boxplot(data = crd_dfw, #we need to use the original data frame
-               aes(x = trtname, y = yield_kgha)) +
+               aes(x = trtname, 
+                   y = yield_kgha,
+                   fill = trtname
+                   )) +
+  geom_jitter() +
+  theme(legend.position = "none") +
   # Adding letters
   geom_label(data = crd_cld_selected, #we need to use the modeled data frame
              aes(x = trtname,
                  y = emmean,#estimated marginal means from the modelled data
                  label = letter
-                 ))
-
+                 )) +
+  labs(x = "N Rate + K Rate (Kg/ Ha)", y = "Yield (Kg/ Ha)") +
+  stat_boxplot(geom = "errorbar", width = 0.2)
 ```
 
+## Boxplots with pairwise comparisons for all levels of nitrogen rates inside each level of potassium rates  
 
 ```{r crd plot interaction pwc Potassium (k) inside Nitrogen (n) rates}
 
@@ -427,22 +449,70 @@ crd_cld_kn_selected <- crd_cld_kn %>% #At this point, "crd_cld_kn" is not a data
   mutate(trtname = paste0(nrate_kgha, "+", krate_kgha)) #to combine the "nrate_kgha" and "krate_kgha" treatments, then treat the combined variable "trtname" as a factor
 
 crd_cld_kn_selected
+```
+
+```{r crd plot interaction pwc nitrogen (n) inside potassium (k) rates}
 
 ggplot() +
   # Raw data and boxplots  
   geom_boxplot(data = crd_dfw,
-               aes(x = krate_kgha, y = yield_kgha)) + #We want to see the Potassium rate in the x axis for all levels of Nitrogen rates
+               aes(x = krate_kgha, 
+                   y = yield_kgha,
+                   fill = krate_kgha
+                   )) + #We want to see the Potassium rate in the x axis for all levels of Nitrogen rates
+  geom_jitter() +
+  theme(legend.position = "none") +
   # Adding letters
   geom_label(data = crd_cld_kn_selected,
              aes(x = krate_kgha, #We want to see the Potassium rate in the x axis for all levels of Nitrogen rates
                  y = emmean,
                  label = letter
                  )) +
-  facet_grid(.~ nrate_kgha) #Within Nitrogen rates, we want to compare Potassium rates. So, "nrate_kgha" will go in the "facet_grid()"  
+  facet_grid(.~ nrate_kgha,
+             labeller = labeller(nrate_kgha = function(x) {
+               paste("Nitrogen Rate (Kg/Ha):", x)
+             })) + #Within Nitrogen rates, we want to compare Potassium rates. So, "nrate_kgha" will go in the "facet_grid()"  
+  labs(x = "Potassium Rate (Kg/ Ha)", y = "Yield (Kg/ Ha)") +
+  stat_boxplot(geom = "errorbar", width = 0.2)
 ```
 
-Let's make this plot publication ready.  
 
-Also, let's explore some different ways of showing this, and how that may impact interpretation, using facets.  
+## Boxplots with pairwise comparisons for all levels of potassium rates inside each level of nitrogen rates  
+
+
+```{r data wrangling for crd plot interaction pwc Potassium (k) inside Nitrogen (n) rates, warning=FALSE, message=FALSE}
+
+#For interaction pwc Potassium (k) inside Nitrogen (n) rates
+crd_cld_nk_selected <- crd_cld_nk %>% #At this point, "crd_cld_nk_a" is not a data frame and cannot be used to plot using ggplot. The first thing we need to do is to convert the "crd_cld_nk_selected_a" into a data frame using the function "as.data.frame()"
+  as.data.frame() %>%
+  mutate(letter = trimws(.group)) %>% #To remove the wide spaces from the ".group" column, we will a create a new column which we will call "letter" and use the function "trimws()" [which stands for trim wide space]. This will remove the extra spaces from the ".group" column and store the letters in a new column called "letter"
+  mutate(trtname = paste0(nrate_kgha, "+", krate_kgha)) #to combine the "nrate_kgha" and "krate_kgha" treatments, then treat the combined variable "trtname" as a factor
+
+crd_cld_nk_selected
+```
+
+```{r crd plot interaction pwc Potassium (k) inside Nitrogen (n) rates, warning=FALSE, message=FALSE}
+ggplot() +
+  # Raw data and boxplots  
+  geom_boxplot(data = crd_dfw,
+               aes(x = nrate_kgha, 
+                   y = yield_kgha,
+                   fill = nrate_kgha #To color the boxplots by "nrate_kgha"
+                   )) + #We want to see the potassium rate in the x axis for all levels of nitrogen rates
+  geom_jitter() +
+  theme(legend.position = "none") +
+  # Adding letters
+  geom_label(data = crd_cld_nk_selected,
+             aes(x = nrate_kgha, #We want to see the pottasium rate in the x axis for all levels of nitrogen rates
+                 y = emmean,
+                 label = letter
+                 )) +
+  facet_grid(.~ krate_kgha,
+             labeller = labeller(krate_kgha = function(x) {
+               paste("Potassium Rate (Kg/Ha):", x)
+             })) + #Within potassium rates, we want to compare nitrogen rates. So, "krate_kgha" will go in the "facet_grid()"  
+  labs(x = "Nitrogen Rate (Kg/ Ha)", y = "Yield (Kg/ Ha)") +
+   stat_boxplot(geom = "errorbar", width = 0.2)
+```
 
 
