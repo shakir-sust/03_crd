@@ -440,6 +440,35 @@ Let's make this plot publication ready.
 
 Also, let's explore some different ways of showing this, and how that may impact interpretation, using facets.  
 
+## Estimated marginal means for all combinations of nitrogen*potassium interactions
+
+```{r interaction means all: to extract all means for nitrogen*potassium interactions, warning=FALSE, message=FALSE}
+
+#If our goal is to find the overall best, we will run this interaction means all 
+
+crd_means_all <- emmeans(crd_mod, #"em" in "emmeans" stand for "expected mariginal means
+                         ~nrate_kgha:krate_kgha #We use ":" for all interaction means i.e., everything in the same level
+                         ) #we need to specify "crd_mod" because this is object for the model
+
+
+crd_means_all
+```
+
+## Pairwise comparisons of all combinatinos of nitrogen*potassium interaction levels  
+
+```{r interaction pwc all}
+crd_cld_all <- cld(crd_means_all,
+                   reversed = T, #Reverses the order of appearance from highest to lowest in the columns (default is lowest to highest)
+                   Letters = letters, #Lower case "letters" is a native object of R that displays all the letters of the Alphabet in lowercase; The argument here is the upper case "Letters" which is a function, I want "Letters" function to follow the order of the lower case "letters" object
+                   adjust = "none", #To specify the type of multiple comparison adjustment e.g., type in "tukey" to use the Tukey's adjustment; "none" to use no adjustment
+                   #alpha = 0.1 #To change the level of significance
+                   )
+
+#The "cld" in the "cld()" function stands for "Compact Letter Display"
+
+crd_cld_all
+```
+
 ## Boxplots with pairwise comparisons for all combinations of nitrogen*potassium level interactions
 
 Let's do some light wrangling here to be able to plot these.  
@@ -482,6 +511,29 @@ ggsave("../output/crd_nk_interaction_boxplot.png",
        width = 6
        )
 ```
+## Estimated marginal means of all levels of nitrogen rates inside each level of potassium rates
+
+```{r interaction means n inside k: to extract the means of nitrogen rates inside each levels of potassim rates}
+#If our goal is to find the best in Nitrogen rates inside each of the Potassium rates, we will extract the means of nitrogen inside potassim rates:
+
+crd_means_nk <- emmeans(crd_mod, ~nrate_kgha | krate_kgha) #"~nrate_kgha | krate_kgha" means We are asking  for all the Nitrogen rates inside each one of the Potassium rates
+
+#We use "|" for interaction means of Nitrogen levels (levels of one factor) inside Potassium levels (levels of another factor) i.e., one factor inside the levels of other
+
+crd_means_nk
+```
+
+## Pairwise comparisons of all levels of nitrogen rates inside each level of potassium rates  
+
+```{r interaction pwc n inside k}
+crd_cld_nk <- cld(crd_means_nk, 
+                   reversed=T, #Reverses the order of appearance from highest to lowest in the columns (default is lowest to highest)
+                   adjust="none", #To specify the type of multiple comparison adjustment e.g., type in "tukey" to use the Tukey's adjustment; "none" to use no adjustment
+               Letters=letters#Lower case "letters" is a native object of R that displays all the letters of the Alphabet in lowercase; The argument here is the upper case "Letters" which is a function, I want "Letters" function to follow the order of the lower case "letters" object
+               ) 
+#Multiple comparisons for Nitrogen groups only within the groups of Potassium
+crd_cld_nk
+```
 
 ## Boxplots with pairwise comparisons for all levels of nitrogen rates inside each level of potassium rates  
 
@@ -511,21 +563,47 @@ ggplot() +
   geom_label(data = crd_cld_kn_selected,
              aes(x = krate_kgha, #We want to see the Potassium rate in the x axis for all levels of Nitrogen rates
                  y = emmean,
-                 label = letter
-                 )) +
+                 label = letter),
+             size = 3,
+             label.padding = unit(.1, "lines")) +
   facet_grid(.~ nrate_kgha,
              labeller = labeller(nrate_kgha = function(x) {
                paste("Nitrogen Rate (Kg/Ha):", x)
              })) + #Within Nitrogen rates, we want to compare Potassium rates. So, "nrate_kgha" will go in the "facet_grid()"  
   labs(x = "Potassium Rate (Kg/ Ha)", y = "Yield (Kg/ Ha)") +
-  stat_boxplot(geom = "errorbar", width = 0.2)
+  scale_fill_viridis_d() + #Color-blind friendly fill theme #"d" for discrete; We are coloring by "trtname" and "trtname" is a discrete variable
+  scale_color_viridis_d() #changes the color of the dots to color-blind friendly
 
 ggsave("../output/crd_n_inside_k_boxplot.png",
        height = 4,
        width = 6
        )
 ```
+## Estimated marginal means of all levels of potassium rates inside each level of nitrogen rates
 
+
+```{r interaction means k inside n: to extract the means of potassium inside nitrogen rates}
+#If our goal is to find the best Potassium rate inside each Nitrogen rates, we will run the following:
+
+crd_means_kn <- emmeans(crd_mod, ~krate_kgha | nrate_kgha) #"~krate_kgha | nrate_kgha" means we are asking the Potassium rates inside each one of the Nitrogen rates
+
+#We use "|" for interaction means of Potassium levels (levels of one factor) inside Nitrogen levels (levels of another factor) i.e., one factor inside the levels of other
+#Important note: flipping the order of krate_kgha either before or after the "|" sign makes a difference
+crd_means_kn
+```
+
+## Pairwise comparisons of all levels of potassium rates inside each level of nitrogen rates  
+
+
+```{r interaction pwc k inside n}
+crd_cld_kn <- cld(crd_means_kn, 
+                   reversed=T, #Reverses the order of appearance from highest to lowest in the columns (default is lowest to highest)
+                   adjust="none", #To specify the type of multiple comparison adjustment e.g., type in "tukey" to use the Tukey's adjustment; "none" to use no adjustment
+               Letters=letters#Lower case "letters" is a native object of R that displays all the letters of the Alphabet in lowercase; The argument here is the upper case "Letters" which is a function, I want "Letters" function to follow the order of the lower case "letters" object
+               ) 
+#Multiple comparisons for only Potassium groups  within the groups of Nitrogen
+crd_cld_kn
+```
 
 ## Boxplots with pairwise comparisons for all levels of potassium rates inside each level of nitrogen rates  
 
@@ -555,14 +633,16 @@ ggplot() +
   geom_label(data = crd_cld_nk_selected,
              aes(x = nrate_kgha, #We want to see the pottasium rate in the x axis for all levels of nitrogen rates
                  y = emmean,
-                 label = letter
-                 )) +
+                 label = letter),
+             size = 3,
+             label.padding = unit(.1, "lines")) +
   facet_grid(.~ krate_kgha,
              labeller = labeller(krate_kgha = function(x) {
                paste("Potassium Rate (Kg/Ha):", x)
              })) + #Within potassium rates, we want to compare nitrogen rates. So, "krate_kgha" will go in the "facet_grid()"  
   labs(x = "Nitrogen Rate (Kg/ Ha)", y = "Yield (Kg/ Ha)") +
-   stat_boxplot(geom = "errorbar", width = 0.2)
+  scale_fill_viridis_d() + #Color-blind friendly fill theme #"d" for discrete; We are coloring by "trtname" and "trtname" is a discrete variable
+scale_color_viridis_d() #changes the color of the dots to color-blind friendly
 
 ggsave("../output/crd_k_inside_n_boxplot.png",
        height = 4,
