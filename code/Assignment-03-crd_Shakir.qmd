@@ -39,12 +39,12 @@ Make sure to load each package in the chunk below.
 
 #Installing packages
 
-install.packages("tidyverse")
-install.packages("car")
-install.packages("broom")
-install.packages("emmeans")
-install.packages("multcomp")
-install.packages("multcompView")
+#install.packages("tidyverse")
+#install.packages("car")
+#install.packages("broom")
+#install.packages("emmeans")
+#install.packages("multcomp")
+#install.packages("multcompView")
 
 # Loading packages
 
