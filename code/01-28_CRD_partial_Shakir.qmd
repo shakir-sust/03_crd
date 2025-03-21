@@ -45,11 +45,15 @@ crd_df
 
 # b) EDA tables  
 ```{r summary}
-summary(crd_df)
+summary(crd_df) #TO see summary/descriptive statistics
 ```
 
 ```{r glimpse}
-glimpse(crd_df)
+glimpse(crd_df) 
+
+#glimpse(): Displays the data type for each variable. Shows a preview of the values in each column.
+#prints the data in a horizontal format, making it easier to view wide datasets.
+#It offers a concise snapshot of the dataset's structure, which is useful during data exploration and debugging.
 ```
 
 # c) Wrangling  
@@ -68,6 +72,12 @@ crd_dfw
 
 ```{r crd_dfw}
 summary(crd_dfw)
+
+#summary(): provides a quick, descriptive overview of the dataset stored in crd_dfw. 
+#Numeric Columns:
+#For each numeric variable, it typically returns summary statistics including the minimum, 1st quartile, median, mean, 3rd quartile, and maximum.
+#Categorical or Factor Columns:
+#For factors or character variables, it provides information such as the frequency of each level or a summary of the unique values.
 ```
 Number of replicates: 4  
 Number of treatments: 3 N rates x 3 K rates = 9  
